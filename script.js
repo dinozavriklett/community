@@ -15,7 +15,7 @@
   const peopleStars = Array.from(document.querySelectorAll('.star-wrapper'));
 
   // =========================================================
-  // 1) РАСКЛАДКА (ОСТАВЛЕНО как было)
+  // 1) РАСКЛАДКА (как было)
   // =========================================================
   function layoutBranchedBrokenRidge() {
     const n = peopleStars.length;
@@ -188,7 +188,7 @@
   let connections = buildConnectionsStable(peopleStars.length);
 
   // =========================================================
-  // 3) ПАНОРАМИРОВАНИЕ КОЛЁСИКОМ — оптимизировано (rAF)
+  // 3) ПАНОРАМИРОВАНИЕ КОЛЁСИКОМ — rAF (как у тебя было без лагов)
   // =========================================================
   let panX = 0;
   let panY = 0;
@@ -334,32 +334,27 @@
   }
 
   // =========================================================
-  // 7) ФОН + ПАДАЮЩИЕ (плотнее фон, но безопасно)
+  // 7) ФОН + ПАДАЮЩИЕ (БЕЗ движения от курсора + больше звёзд)
   // =========================================================
-  let mouseX = 0, mouseY = 0;
-  let pX = 0, pY = 0;
 
-  window.addEventListener('mousemove', (e) => {
-    const cx = window.innerWidth / 2;
-    const cy = window.innerHeight / 2;
-    mouseX = (e.clientX - cx) / window.innerWidth;
-    mouseY = (e.clientY - cy) / window.innerHeight;
-  });
-  window.addEventListener('mouseleave', () => { mouseX = 0; mouseY = 0; });
-
-  // Вариант 2: плотнее far, near — чуть-чуть (чтобы не убить FPS)
+  // КАЧЕСТВО
+  // Важно: увеличиваем в основном FAR (дешёвые точки).
+  // NEAR чуть-чуть, чтобы не убить FPS.
   const QUALITY = {
     maxDpr: 1.35,
 
-    farMax: 18000,
-    farMin: 7600,
-    farDiv: 380,
+    // FAR — много звёзд
+    farMax: 24000,
+    farMin: 9500,
+    farDiv: 290,
 
-    nearMax: 3000,
-    nearMin: 1100,
-    nearDiv: 2700,
+    // NEAR — осторожно
+    nearMax: 3200,
+    nearMin: 1200,
+    nearDiv: 2400,
 
-    haloOnlyIfR: 1.25,
+    // меньше ореолов = быстрее
+    haloOnlyIfR: 1.28,
   };
 
   function setupFixedCanvas(canvas, ctx){
@@ -388,13 +383,13 @@
     farStars = [];
     nearStars = [];
 
-    // FAR — делаем их чуть мельче/ярче, чтобы "кажется больше" (дешево по FPS)
+    // FAR — мелкие и чуть ярче (кажется "ещё больше", но дешево по FPS)
     for(let i=0;i<farCount;i++){
       farStars.push({
         x: Math.random()*w,
         y: Math.random()*h,
-        r: Math.random()*0.45 + 0.08,
-        a: Math.random()*0.28 + 0.06,
+        r: Math.random()*0.45 + 0.07,
+        a: Math.random()*0.30 + 0.06,
         tw: (Math.random()*1.0 + 0.25),
         ph: Math.random()*Math.PI*2,
         vx: (Math.random()-0.5)*0.010,
@@ -499,7 +494,7 @@
     }
   }
 
-  // ---- Авто-понижение качества, если FPS низкий (мягко)
+  // Авто-урезание, если вдруг ноуту тяжело (без дерганья)
   let fpsAcc = 0, fpsCount = 0;
   let qualityDropped = false;
 
@@ -516,9 +511,9 @@
     if (!qualityDropped && fps < 45){
       qualityDropped = true;
 
-      // режем near сильнее (far оставляем почти как есть)
+      // режем near сильнее, far чуть-чуть
       nearStars = nearStars.slice(0, Math.max(900, Math.floor(nearStars.length * 0.65)));
-      farStars  = farStars.slice(0, Math.max(5200, Math.floor(farStars.length * 0.82)));
+      farStars  = farStars.slice(0, Math.max(7000, Math.floor(farStars.length * 0.80)));
 
       nextShootAt = performance.now() + 1500 + Math.random()*2600;
     }
@@ -536,13 +531,8 @@
     const w = window.innerWidth;
     const h = window.innerHeight;
 
-    pX += (mouseX - pX) * 0.055;
-    pY += (mouseY - pY) * 0.055;
-
-    // FAR (мягкий параллакс)
+    // ===== FAR (без параллакса от курсора: оффсеты = 0) =====
     farCtx.clearRect(0,0,w,h);
-    const farOffX = pX * 6;
-    const farOffY = pY * 6;
 
     for (const s of farStars){
       s.x += s.vx; s.y += s.vy;
@@ -554,19 +544,14 @@
       const twinkle = 0.60 + 0.40 * Math.sin(now/1000 * s.tw + s.ph);
       const a = s.a * twinkle;
 
-      const xx = ((s.x + farOffX) % w + w) % w;
-      const yy = ((s.y + farOffY) % h + h) % h;
-
       farCtx.beginPath();
-      farCtx.arc(xx, yy, s.r, 0, Math.PI*2);
+      farCtx.arc(s.x, s.y, s.r, 0, Math.PI*2);
       farCtx.fillStyle = `rgba(255,255,255,${a})`;
       farCtx.fill();
     }
 
-    // NEAR (мягче параллакс)
+    // ===== NEAR (без параллакса от курсора: оффсеты = 0) =====
     nearCtx.clearRect(0,0,w,h);
-    const nearOffX = pX * 14;
-    const nearOffY = pY * 14;
 
     for (const s of nearStars){
       s.x += s.vx; s.y += s.vy;
@@ -578,18 +563,15 @@
       const twinkle = 0.56 + 0.44 * Math.sin(now/1000 * s.tw + s.ph);
       const a = s.a * twinkle;
 
-      const xx = ((s.x + nearOffX) % w + w) % w;
-      const yy = ((s.y + nearOffY) % h + h) % h;
-
       if (s.r > QUALITY.haloOnlyIfR){
         nearCtx.beginPath();
-        nearCtx.arc(xx, yy, s.r*3.0, 0, Math.PI*2);
+        nearCtx.arc(s.x, s.y, s.r*3.0, 0, Math.PI*2);
         nearCtx.fillStyle = `rgba(255,255,255,${a*0.07})`;
         nearCtx.fill();
       }
 
       nearCtx.beginPath();
-      nearCtx.arc(xx, yy, s.r, 0, Math.PI*2);
+      nearCtx.arc(s.x, s.y, s.r, 0, Math.PI*2);
       nearCtx.fillStyle = `rgba(255,255,255,${a})`;
       nearCtx.fill();
     }
