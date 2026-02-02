@@ -15,7 +15,7 @@
   const peopleStars = Array.from(document.querySelectorAll('.star-wrapper'));
 
   // =========================================================
-  // 1) РАСКЛАДКА: КУЧНЕЕ + ЛОМАНЫЙ ХРЕБЕТ + ВЕТКИ
+  // 1) РАСКЛАДКА: (НЕ ТРОГАЕМ как просила) — оставлено как было
   // =========================================================
   function layoutBranchedBrokenRidge() {
     const n = peopleStars.length;
@@ -119,7 +119,7 @@
   }
 
   // =========================================================
-  // 2) СВЯЗИ
+  // 2) СВЯЗИ (как было)
   // =========================================================
   function buildConnectionsStable(n) {
     const con = [];
@@ -188,7 +188,7 @@
   let connections = buildConnectionsStable(peopleStars.length);
 
   // =========================================================
-  // 3) ПАНОРАМИРОВАНИЕ КОЛЁСИКОМ
+  // 3) ПАНОРАМИРОВАНИЕ КОЛЁСИКОМ (как было)
   // =========================================================
   let panX = 0;
   let panY = 0;
@@ -228,7 +228,7 @@
   }, { passive:false });
 
   // =========================================================
-  // 4) ПОЗИЦИИ
+  // 4) ПОЗИЦИИ (как было)
   // =========================================================
   function positionPeopleStars(){
     const w = world.offsetWidth;
@@ -243,7 +243,7 @@
   }
 
   // =========================================================
-  // 5) ЦЕНТРИРОВАНИЕ
+  // 5) ЦЕНТРИРОВАНИЕ (как было)
   // =========================================================
   function centerWorldOnConstellation(){
     if (peopleStars.length === 0) return;
@@ -278,7 +278,7 @@
   }
 
   // =========================================================
-  // 6) ЛИНИИ
+  // 6) ЛИНИИ (как было)
   // =========================================================
   function drawLines(){
     needDrawLines = false;
@@ -315,7 +315,7 @@
   }
 
   // =========================================================
-  // 7) ФОН + ПАДАЮЩИЕ
+  // 7) ФОН + ПАДАЮЩИЕ (ОПТИМИЗАЦИЯ)
   // =========================================================
   let mouseX = 0, mouseY = 0;
   let pX = 0, pY = 0;
@@ -328,8 +328,21 @@
   });
   window.addEventListener('mouseleave', () => { mouseX = 0; mouseY = 0; });
 
+  // ---- КАЧЕСТВО: главное — ограничить DPR (иначе canvas в 2–3 раза тяжелее)
+  const QUALITY = {
+    // было: dpr = devicePixelRatio (может быть 2-3)
+    maxDpr: 1.35,      // можно поставить 1.25 если ноут слабый
+    farMax: 14000,     // было до 26000
+    farMin: 5200,      // было 7000
+    nearMax: 3800,     // было до 6200
+    nearMin: 1200,     // было 1700
+    farDiv: 520,       // было 360 (меньше делитель -> больше звезд)
+    nearDiv: 2200,     // было 1800
+    haloOnlyIfR: 1.15, // порог "ореола" (меньше ореолов = легче)
+  };
+
   function setupFixedCanvas(canvas, ctx){
-    const dpr = Math.max(1, window.devicePixelRatio || 1);
+    const dpr = Math.max(1, Math.min(QUALITY.maxDpr, window.devicePixelRatio || 1));
     canvas.style.width = '100vw';
     canvas.style.height = '100vh';
     canvas.width = Math.floor(window.innerWidth * dpr);
@@ -348,8 +361,8 @@
 
     const area = w * h;
 
-    const farCount  = Math.max(7000, Math.min(26000, Math.floor(area / 360)));
-    const nearCount = Math.max(1700, Math.min(6200,  Math.floor(area / 1800)));
+    const farCount  = Math.max(QUALITY.farMin,  Math.min(QUALITY.farMax,  Math.floor(area / QUALITY.farDiv)));
+    const nearCount = Math.max(QUALITY.nearMin, Math.min(QUALITY.nearMax, Math.floor(area / QUALITY.nearDiv)));
 
     farStars = [];
     nearStars = [];
@@ -359,11 +372,11 @@
         x: Math.random()*w,
         y: Math.random()*h,
         r: Math.random()*0.52 + 0.10,
-        a: Math.random()*0.26 + 0.04,
+        a: Math.random()*0.24 + 0.04,     // чуть меньше = меньше заметно, но легче
         tw: (Math.random()*1.0 + 0.25),
         ph: Math.random()*Math.PI*2,
-        vx: (Math.random()-0.5)*0.012,
-        vy: (Math.random()-0.5)*0.012
+        vx: (Math.random()-0.5)*0.010,    // чуть меньше движения = легче глазу и CPU
+        vy: (Math.random()-0.5)*0.010
       });
     }
 
@@ -371,17 +384,17 @@
       nearStars.push({
         x: Math.random()*w,
         y: Math.random()*h,
-        r: Math.random()*1.25 + 0.28,
-        a: Math.random()*0.42 + 0.08,
+        r: Math.random()*1.15 + 0.26,
+        a: Math.random()*0.40 + 0.08,
         tw: (Math.random()*1.35 + 0.55),
         ph: Math.random()*Math.PI*2,
-        vx: (Math.random()-0.5)*0.034,
-        vy: (Math.random()-0.5)*0.034
+        vx: (Math.random()-0.5)*0.028,
+        vy: (Math.random()-0.5)*0.028
       });
     }
 
     shootings.length = 0;
-    nextShootAt = performance.now() + 900 + Math.random()*1900;
+    nextShootAt = performance.now() + 1100 + Math.random()*2100;
   }
 
   const shootings = [];
@@ -394,7 +407,7 @@
     const y0 = fromTop ? -200 : Math.random() * (h * 0.70);
 
     const angle = 0.70 + Math.random()*0.45;
-    const speed = 950 + Math.random()*1200;
+    const speed = 900 + Math.random()*1100;
 
     return {
       x: x0,
@@ -403,7 +416,7 @@
       vy: Math.sin(angle) * speed,
       life: 0,
       maxLife: 0.55 + Math.random()*0.60,
-      tail: 320 + Math.random()*260
+      tail: 300 + Math.random()*240
     };
   }
 
@@ -411,8 +424,8 @@
     if (now < nextShootAt) return;
 
     let burst = 1;
-    if (Math.random() < 0.55) burst++;
-    if (Math.random() < 0.25) burst++;
+    if (Math.random() < 0.50) burst++;
+    if (Math.random() < 0.20) burst++;
 
     for (let i = 0; i < burst; i++){
       if (shootings.length >= MAX_SHOOTINGS) break;
@@ -422,7 +435,7 @@
       shootings.push(s);
     }
 
-    nextShootAt = now + 850 + Math.random()*2000;
+    nextShootAt = now + 1050 + Math.random()*2300;
   }
 
   function drawShootings(dt, w, h){
@@ -464,6 +477,33 @@
     }
   }
 
+  // ---- Авто-понижение качества, если FPS низкий (без дерганья)
+  let fpsAcc = 0, fpsCount = 0;
+  let qualityDropped = false;
+  function maybeDropQuality(dt){
+    fpsAcc += dt;
+    fpsCount += 1;
+
+    if (fpsAcc < 2.6) return; // измеряем ~2.6 сек
+    const fps = fpsCount / fpsAcc;
+
+    fpsAcc = 0;
+    fpsCount = 0;
+
+    // если ноут слабый — режем звезды один раз
+    if (!qualityDropped && fps < 45){
+      qualityDropped = true;
+
+      // уменьшаем массивы на ~35%
+      const cut = (arr) => arr.slice(0, Math.max(400, Math.floor(arr.length * 0.65)));
+      farStars = cut(farStars);
+      nearStars = cut(nearStars);
+
+      // падающие чуть реже
+      nextShootAt = performance.now() + 1500 + Math.random()*2600;
+    }
+  }
+
   let lastTime = performance.now();
   let linePulse = 0;
 
@@ -471,12 +511,15 @@
     const dt = Math.min(0.033, (now - lastTime) / 1000);
     lastTime = now;
 
+    maybeDropQuality(dt);
+
     const w = window.innerWidth;
     const h = window.innerHeight;
 
     pX += (mouseX - pX) * 0.055;
     pY += (mouseY - pY) * 0.055;
 
+    // FAR
     farCtx.clearRect(0,0,w,h);
     const farOffX = pX * 12;
     const farOffY = pY * 12;
@@ -500,6 +543,7 @@
       farCtx.fill();
     }
 
+    // NEAR
     nearCtx.clearRect(0,0,w,h);
     const nearOffX = pX * 30;
     const nearOffY = pY * 30;
@@ -517,10 +561,11 @@
       const xx = ((s.x + nearOffX) % w + w) % w;
       const yy = ((s.y + nearOffY) % h + h) % h;
 
-      if (s.r > 1.05){
+      // ореол только для реально крупных
+      if (s.r > QUALITY.haloOnlyIfR){
         nearCtx.beginPath();
-        nearCtx.arc(xx, yy, s.r*3.4, 0, Math.PI*2);
-        nearCtx.fillStyle = `rgba(255,255,255,${a*0.08})`;
+        nearCtx.arc(xx, yy, s.r*3.0, 0, Math.PI*2);
+        nearCtx.fillStyle = `rgba(255,255,255,${a*0.07})`;
         nearCtx.fill();
       }
 
@@ -562,5 +607,8 @@
   setTimeout(() => { positionPeopleStars(); centerWorldOnConstellation(); requestDrawLines(); drawLines(); }, 220);
   setTimeout(() => { positionPeopleStars(); centerWorldOnConstellation(); requestDrawLines(); drawLines(); }, 900);
 
-  window.addEventListener('resize', initAll);
+  window.addEventListener('resize', () => {
+    qualityDropped = false;
+    initAll();
+  });
 })();
