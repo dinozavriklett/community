@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <title>Созвездие историй</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- ФОН -->
+  <canvas id="starfieldFar"></canvas>
+  <canvas id="starfieldNear"></canvas>
+  <canvas id="shooting"></canvas>
+
+  <header class="header">
+    <h1>СЕМЬЯ</h1>
+    <p>где каждый человек — по-своему звезда</p>
+  </header>
+
+  <!-- Вьюпорт -->
+  <main class="space" id="space" aria-label="Карта созвездия (двигай колёсиком)">
+    <!-- Мир (двигается) -->
+    <div class="world" id="world">
+      <svg class="constellation" id="constellation"></svg>
+
+      <!-- Твои 8 -->
+      <div class="star-wrapper">
+        <div class="person-star"><span></span></div>
+        <div class="star-name">Lett</div>
+        <div class="tooltip">
+          <canvas class="tooltip-bg"></canvas>
+          <div class="tooltip-tint"></div>
+          <div class="tooltip-text">Ну, типа я</div>
+        </div>
+      </div>
+
+      <div class="star-wrapper">
+        <div class="person-star"><span></span></div>
+        <div class="star-name">f!l</div>
+        <div class="tooltip">
+          <canvas class="tooltip-bg"></canvas>
+          <div class="tooltip-tint"></div>
+          <div class="tooltip-text">Любовь!!!</div>
+        </div>
+      </div>
+
+      <div class="star-wrapper">
+        <div class="person-star"><span></span></div>
+        <div class="star-name">Midnight Minako</div>
+        <div class="tooltip">
+          <canvas class="tooltip-bg"></canvas>
+          <div class="tooltip-tint"></div>
+          <div class="tooltip-text">Она появлялась между моментами</div>
+        </div>
+      </div>
+
+      <div class="star-wrapper">
+        <div class="person-star"><span></span></div>
+        <div class="star-name">Menlisha</div>
+        <div class="tooltip">
+          <canvas class="tooltip-bg"></canvas>
+          <div class="tooltip-tint"></div>
+          <div class="tooltip-text">Её траектория была непредсказуемой</div>
+        </div>
+      </div>
+
+      <div class="star-wrapper">
+        <div class="person-star"><span></span></div>
+        <div class="star-name">katana</div>
+        <div class="tooltip">
+          <canvas class="tooltip-bg"></canvas>
+          <div class="tooltip-tint"></div>
+          <div class="tooltip-text">Чистая грань</div>
+        </div>
+      </div>
+
+      <div class="star-wrapper">
+        <div class="person-star"><span></span></div>
+        <div class="star-name">siļent</div>
+        <div class="tooltip">
+          <canvas class="tooltip-bg"></canvas>
+          <div class="tooltip-tint"></div>
+          <div class="tooltip-text">Тихая точка опоры</div>
+        </div>
+      </div>
+
+      <div class="star-wrapper">
+        <div class="person-star"><span></span></div>
+        <div class="star-name">clam6iry</div>
+        <div class="tooltip">
+          <canvas class="tooltip-bg"></canvas>
+          <div class="tooltip-tint"></div>
+          <div class="tooltip-text">У неё свой маршрут</div>
+        </div>
+      </div>
+
+      <div class="star-wrapper">
+        <div class="person-star"><span></span></div>
+        <div class="star-name">c4het</div>
+        <div class="tooltip">
+          <canvas class="tooltip-bg"></canvas>
+          <div class="tooltip-tint"></div>
+          <div class="tooltip-text">За границей кадра</div>
+        </div>
+      </div>
+
+      <!-- +12 новых -->
+      <div class="star-wrapper"><div class="person-star"><span></span></div><div class="star-name">AgelSan</div><div class="tooltip"><canvas class="tooltip-bg"></canvas><div class="tooltip-tint"></div><div class="tooltip-text">Тихая искра</div></div></div>
+      <div class="star-wrapper"><div class="person-star"><span></span></div><div class="star-name">onowka</div><div class="tooltip"><canvas class="tooltip-bg"></canvas><div class="tooltip-tint"></div><div class="tooltip-text">Дальняя точка</div></div></div>
+      <div class="star-wrapper"><div class="person-star"><span></span></div><div class="star-name">Auretel'</div><div class="tooltip"><canvas class="tooltip-bg"></canvas><div class="tooltip-tint"></div><div class="tooltip-text">Бьётся ровно</div></div></div>
+      <div class="star-wrapper"><div class="person-star"><span></span></div><div class="star-name">terzanie</div><div class="tooltip"><canvas class="tooltip-bg"></canvas><div class="tooltip-tint"></div><div class="tooltip-text">Отзывается</div></div></div>
+      <div class="star-wrapper"><div class="person-star"><span></span></div><div class="star-name">Kens1ss</div><div class="tooltip"><canvas class="tooltip-bg"></canvas><div class="tooltip-tint"></div><div class="tooltip-text">Держит курс</div></div></div>
+      <div class="star-wrapper"><div class="person-star"><span></span></div><div class="star-name">La suerte del sol</div><div class="tooltip"><canvas class="tooltip-bg"></canvas><div class="tooltip-tint"></div><div class="tooltip-text">Свет без шума</div></div></div>
+      <div class="star-wrapper"><div class="person-star"><span></span></div><div class="star-name">sozidat'</div><div class="tooltip"><canvas class="tooltip-bg"></canvas><div class="tooltip-tint"></div><div class="tooltip-text">тут очень крутое описание для проверки размеров рамки и блюра задних элементов <3</div></div></div>
+      <div class="star-wrapper"><div class="person-star"><span></span></div><div class="star-name">raven</div><div class="tooltip"><canvas class="tooltip-bg"></canvas><div class="tooltip-tint"></div><div class="tooltip-text">Скрытый свет</div></div></div>
+      <div class="star-wrapper"><div class="person-star"><span></span></div><div class="star-name">Coriandrum's</div><div class="tooltip"><canvas class="tooltip-bg"></canvas><div class="tooltip-tint"></div><div class="tooltip-text">Вспыхивает внезапно</div></div></div>
+      <div class="star-wrapper"><div class="person-star"><span></span></div><div class="star-name">mistyx</div><div class="tooltip"><canvas class="tooltip-bg"></canvas><div class="tooltip-tint"></div><div class="tooltip-text">Выше линии</div></div></div>
+      <div class="star-wrapper"><div class="person-star"><span></span></div><div class="star-name">муся че</div><div class="tooltip"><canvas class="tooltip-bg"></canvas><div class="tooltip-tint"></div><div class="tooltip-text">Полюс</div></div></div>
+      <div class="star-wrapper"><div class="person-star"><span></span></div><div class="star-name">Sushka</div><div class="tooltip"><canvas class="tooltip-bg"></canvas><div class="tooltip-tint"></div><div class="tooltip-text">Появляется вовремя</div></div></div>
+
+    </div>
+  </main>
+
+  <footer class="footer">© 2026 @dinozavrikLett</footer>
+
+  <div id="tooltip-layer"></div>
+
+<script src="script.js"></script>
+</body>
+</html>

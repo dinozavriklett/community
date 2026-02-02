@@ -1,0 +1,288 @@
+/* =========================
+   RESET / BASE
+========================= */
+*{
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body{
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  font-family: 'Manrope', system-ui, -apple-system, "Segoe UI", sans-serif;
+  background: #000;
+  color: #fff;
+}
+
+/* =========================
+   SPACE / WORLD
+========================= */
+#space{
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+}
+
+#world{
+  position: absolute;
+  width: 3000px;
+  height: 2200px;
+}
+
+/* =========================
+   CANVAS BACKGROUND
+   ✅ ВАЖНО: фиксируем ТОЛЬКО фоновые canvas
+========================= */
+#starfieldFar,
+#starfieldNear,
+#shooting{
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+}
+
+#starfieldFar{ z-index: 0; }
+#starfieldNear{ z-index: 1; }
+#shooting{ z-index: 2; }
+
+/* =========================
+   HEADER
+========================= */
+.header{
+  position: fixed;
+  top: 48px;
+  width: 100%;
+  text-align: center;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.header h1{
+  font-family: 'Space Grotesk', system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-size: 44px;
+  letter-spacing: 0.18em;
+  color: rgba(135,175,255,0.95);
+  text-shadow:
+    0 0 26px rgba(135,175,255,0.95),
+    0 0 62px rgba(135,175,255,0.55);
+}
+
+.header p{
+  margin-top: 10px;
+  font-size: 16px;
+  letter-spacing: 0.04em;
+  color: rgba(135,175,255,0.7);
+  text-shadow: 0 0 18px rgba(135,175,255,0.55);
+}
+
+/* =========================
+   FOOTER
+========================= */
+.footer{
+  position: fixed;
+  bottom: 24px;
+  width: 100%;
+  text-align: center;
+  font-size: 13px;
+  color: rgba(255,255,255,0.25);
+  z-index: 10;
+  pointer-events: none;
+}
+
+/* =========================
+   STAR WRAPPER
+========================= */
+.star-wrapper{
+  position: absolute;
+  transform: translate(-50%, -50%);
+}
+
+/* =========================
+   PERSON STAR — 4-LUCH + SVET
+========================= */
+.person-star{
+  position: relative;
+  width: 18px;
+  height: 18px;
+
+  filter:
+    drop-shadow(0 0 6px rgba(255,255,255,1))
+    drop-shadow(0 0 14px rgba(200,230,255,1))
+    drop-shadow(0 0 30px rgba(185,220,255,0.95))
+    drop-shadow(0 0 60px rgba(165,210,255,0.75))
+    drop-shadow(0 0 110px rgba(145,195,255,0.45));
+}
+
+/* вертикальный луч */
+.person-star::before{
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: -70%;
+  width: 1.15px;
+  height: 240%;
+  transform: translateX(-50%);
+  background: linear-gradient(
+    to bottom,
+    transparent,
+    rgba(255,255,255,1),
+    transparent
+  );
+}
+
+/* горизонтальный луч */
+.person-star::after{
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: -70%;
+  height: 1.15px;
+  width: 240%;
+  transform: translateY(-50%);
+  background: linear-gradient(
+    to right,
+    transparent,
+    rgba(255,255,255,1),
+    transparent
+  );
+}
+
+/* =========================
+   STAR NAME
+========================= */
+.star-name{
+  margin-top: 10px;
+  font-size: 14px;
+  text-align: center;
+  color: rgba(255,255,255,1);
+  text-shadow:
+    0 0 14px rgba(210,235,255,1),
+    0 0 36px rgba(185,220,255,0.85),
+    0 0 80px rgba(160,205,255,0.55);
+  white-space: nowrap;
+}
+
+/* =========================
+   TOOLTIP (GLASS)
+   ✅ фон космоса должен быть ВИДЕН через карточку
+========================= */
+/* =========================
+   TOOLTIP (GLASS) — ТОЛЬКО ТАБЛИЧКИ
+   ✅ видно фон космоса
+   ✅ блюрит звёзды и линии, которые находятся ЗА карточкой
+========================= */
+.tooltip{
+  position: absolute;
+  left: 50%;
+  bottom: -78px;
+
+  transform: translateX(-50%) translateY(6px);
+  opacity: 0;
+
+  width: max-content;
+  max-width: min(560px, calc(100vw - 48px));
+  padding: 14px 22px;
+
+  border-radius: 18px;
+  overflow: hidden;
+
+  /* стекло: темно-синее, но реально прозрачное */
+  background: rgba(7, 14, 26, 0.08);
+
+  /* blur именно задника */
+  -webkit-backdrop-filter: blur(16px) saturate(125%);
+  backdrop-filter: blur(16px) saturate(125%);
+
+  border: 1px solid rgba(150, 200, 255, 0.22);
+  box-shadow:
+    0 14px 40px rgba(0, 0, 0, 0.38),
+    0 0 0 1px rgba(20, 40, 70, 0.22) inset;
+
+  pointer-events: none;
+  transition: opacity .18s ease, transform .18s ease;
+}
+
+.star-wrapper:hover .tooltip{
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* ВАЖНО: убираем внутренний "скриншот" неба, он ломает blur */
+.tooltip .tooltip-bg{ display: none !important; }
+
+/* лёгкий тинт, чтобы текст читался, но фон был виден */
+.tooltip .tooltip-tint{
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: rgba(7, 14, 26, 0.10);
+}
+
+/* текст */
+.tooltip .tooltip-text{
+  position: relative;
+  z-index: 1;
+
+  font-size: 18px;
+  line-height: 1.25;
+  text-align: center;
+  color: rgba(245,250,255,0.92);
+
+  white-space: normal;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+}
+
+.tooltip::before,
+.tooltip::after{
+  content: none !important;
+}
+/* =========================
+   CONSTELLATION LINES
+========================= */
+#constellation{
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+}
+
+#constellation line{
+  stroke: rgba(200,230,255,0.95);
+  stroke-width: 1.7;
+  filter:
+    drop-shadow(0 0 14px rgba(200,230,255,0.95))
+    drop-shadow(0 0 40px rgba(170,215,255,0.65));
+}
+
+/* ✅ чтобы backdrop-filter блюрил линии/звёзды:
+   линии должны быть ниже карточки */
+#constellation{ z-index: 2 !important; }
+
+/* звёзды-люди выше линий */
+.star-wrapper{ z-index: 4 !important; }
+
+/* карточка выше всего созвездия */
+.tooltip{ z-index: 999 !important; }
+
+/* === FIX: всегда настоящее стекло, без "фотографии" внутри === */
+.tooltip .tooltip-bg{ 
+  display:none !important; 
+}
+
+/* делаем стекло чуть "честнее" (фон будет виден и блюриться) */
+.tooltip{
+  background: rgba(7, 14, 26, 0.10) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(120%) !important;
+  backdrop-filter: blur(16px) saturate(120%) !important;
+}
+
+/* по желанию: чуть меньше затемнения, чтобы звезды читались */
+.tooltip .tooltip-tint{
+  background: rgba(7, 14, 26, 0.06) !important;
+}
+
+
