@@ -15,7 +15,7 @@
   const peopleStars = Array.from(document.querySelectorAll('.star-wrapper'));
 
   // =========================================================
-  // 1) РАСКЛАДКА (как было)
+  // 1) РАСКЛАДКА (НЕ ТРОГАЮ)
   // =========================================================
   function layoutBranchedBrokenRidge() {
     const n = peopleStars.length;
@@ -119,7 +119,7 @@
   }
 
   // =========================================================
-  // 2) СВЯЗИ (как было)
+  // 2) СВЯЗИ (НЕ ТРОГАЮ)
   // =========================================================
   function buildConnectionsStable(n) {
     const con = [];
@@ -188,7 +188,7 @@
   let connections = buildConnectionsStable(peopleStars.length);
 
   // =========================================================
-  // 3) ПАНОРАМИРОВАНИЕ КОЛЁСИКОМ — rAF (без лагов)
+  // 3) ПАНОРАМА КОЛЁСИКОМ (rAF, как у тебя без лагов)
   // =========================================================
   let panX = 0;
   let panY = 0;
@@ -334,26 +334,21 @@
   }
 
   // =========================================================
-  // 7) ФОН + ПАДАЮЩИЕ
-  //    ⭐️ звёзды НЕ двигаются
-  //    ⭐️ мерцания НЕТ
-  //    ⭐️ звёзд много
+  // 7) ФОН: СТАТИЧНЫЕ звёзды (рисуются 1 раз), БЕЗ мерцания
   // =========================================================
   const QUALITY = {
     maxDpr: 1.35,
 
-    // FAR: максимально плотный слой (точки)
-    farMax: 52000,
-    farMin: 21000,
-    farDiv: 155,
+    // МНОГО звёзд (far дешёвый, near дороже)
+    farMax: 90000,
+    farMin: 35000,
+    farDiv: 90,     // меньше = больше звезд
 
-    // NEAR: умеренно больше (дороже чем far)
-    nearMax: 7000,
-    nearMin: 2400,
-    nearDiv: 1500,
+    nearMax: 12000,
+    nearMin: 3200,
+    nearDiv: 900,
 
-    // ореолы только у самых крупных (ускоряет)
-    haloOnlyIfR: 1.38,
+    haloOnlyIfR: 1.55,
   };
 
   function setupFixedCanvas(canvas, ctx){
@@ -369,7 +364,7 @@
   let farStars = [];
   let nearStars = [];
 
-  function initStarLayers(){
+  function drawStaticStarfield(){
     const { w, h } = setupFixedCanvas(farCanvas, farCtx);
     setupFixedCanvas(nearCanvas, nearCtx);
     setupFixedCanvas(shootCanvas, shootCtx);
@@ -379,34 +374,60 @@
     const farCount  = Math.max(QUALITY.farMin,  Math.min(QUALITY.farMax,  Math.floor(area / QUALITY.farDiv)));
     const nearCount = Math.max(QUALITY.nearMin, Math.min(QUALITY.nearMax, Math.floor(area / QUALITY.nearDiv)));
 
-    farStars = [];
-    nearStars = [];
-
-    // FAR — много мелких точек, фиксированная яркость (без мерцания)
+    // генерим звезды (фикс)
+    farStars = new Array(farCount);
     for(let i=0;i<farCount;i++){
-      farStars.push({
+      farStars[i] = {
         x: Math.random()*w,
         y: Math.random()*h,
-        r: Math.random()*0.42 + 0.06,
-        a: Math.random()*0.32 + 0.06
-      });
+        r: Math.random()*0.38 + 0.05,
+        a: Math.random()*0.30 + 0.06
+      };
     }
 
-    // NEAR — чуть крупнее, фиксированная яркость
+    nearStars = new Array(nearCount);
     for(let i=0;i<nearCount;i++){
-      nearStars.push({
+      nearStars[i] = {
         x: Math.random()*w,
         y: Math.random()*h,
-        r: Math.random()*1.05 + 0.23,
-        a: Math.random()*0.40 + 0.08
-      });
+        r: Math.random()*1.00 + 0.22,
+        a: Math.random()*0.38 + 0.08
+      };
     }
 
+    // рисуем FAR один раз
+    farCtx.clearRect(0,0,w,h);
+    for (const s of farStars){
+      farCtx.beginPath();
+      farCtx.arc(s.x, s.y, s.r, 0, Math.PI*2);
+      farCtx.fillStyle = `rgba(255,255,255,${s.a})`;
+      farCtx.fill();
+    }
+
+    // рисуем NEAR один раз (+ редкие ореолы)
+    nearCtx.clearRect(0,0,w,h);
+    for (const s of nearStars){
+      if (s.r > QUALITY.haloOnlyIfR){
+        nearCtx.beginPath();
+        nearCtx.arc(s.x, s.y, s.r*3.0, 0, Math.PI*2);
+        nearCtx.fillStyle = `rgba(255,255,255,${s.a*0.06})`;
+        nearCtx.fill();
+      }
+
+      nearCtx.beginPath();
+      nearCtx.arc(s.x, s.y, s.r, 0, Math.PI*2);
+      nearCtx.fillStyle = `rgba(255,255,255,${s.a})`;
+      nearCtx.fill();
+    }
+
+    // (canvas shooting) будет рисоваться в анимации
     shootings.length = 0;
-    nextShootAt = performance.now() + 950 + Math.random()*2000;
+    nextShootAt = performance.now() + 900 + Math.random()*2100;
   }
 
-  // падающие звёзды оставляем
+  // =========================================================
+  // 8) ПАДАЮЩИЕ ЗВЁЗДЫ (анимация остаётся)
+  // =========================================================
   const shootings = [];
   let nextShootAt = 0;
   const MAX_SHOOTINGS = 7;
@@ -487,30 +508,9 @@
     }
   }
 
-  // авто-урезание, если вдруг тяжело
-  let fpsAcc = 0, fpsCount = 0;
-  let qualityDropped = false;
-
-  function maybeDropQuality(dt){
-    fpsAcc += dt;
-    fpsCount += 1;
-
-    if (fpsAcc < 2.6) return;
-    const fps = fpsCount / fpsAcc;
-
-    fpsAcc = 0;
-    fpsCount = 0;
-
-    if (!qualityDropped && fps < 45){
-      qualityDropped = true;
-
-      nearStars = nearStars.slice(0, Math.max(1600, Math.floor(nearStars.length * 0.60)));
-      farStars  = farStars.slice(0, Math.max(14000, Math.floor(farStars.length * 0.72)));
-
-      nextShootAt = performance.now() + 1400 + Math.random()*2600;
-    }
-  }
-
+  // =========================================================
+  // 9) ANIMATE: НЕ трогаем far/near — только shooting + линии
+  // =========================================================
   let lastTime = performance.now();
   let linePulse = 0;
 
@@ -518,41 +518,13 @@
     const dt = Math.min(0.033, (now - lastTime) / 1000);
     lastTime = now;
 
-    maybeDropQuality(dt);
-
     const w = window.innerWidth;
     const h = window.innerHeight;
 
-    // FAR (без мерцания)
-    farCtx.clearRect(0,0,w,h);
-    for (const s of farStars){
-      farCtx.beginPath();
-      farCtx.arc(s.x, s.y, s.r, 0, Math.PI*2);
-      farCtx.fillStyle = `rgba(255,255,255,${s.a})`;
-      farCtx.fill();
-    }
-
-    // NEAR (без мерцания + редкие ореолы)
-    nearCtx.clearRect(0,0,w,h);
-    for (const s of nearStars){
-      if (s.r > QUALITY.haloOnlyIfR){
-        nearCtx.beginPath();
-        nearCtx.arc(s.x, s.y, s.r*3.0, 0, Math.PI*2);
-        nearCtx.fillStyle = `rgba(255,255,255,${s.a*0.065})`;
-        nearCtx.fill();
-      }
-
-      nearCtx.beginPath();
-      nearCtx.arc(s.x, s.y, s.r, 0, Math.PI*2);
-      nearCtx.fillStyle = `rgba(255,255,255,${s.a})`;
-      nearCtx.fill();
-    }
-
-    // падающие звёзды
     maybeSpawnShooting(now, w, h);
     drawShootings(dt, w, h);
 
-    // лёгкая пульсация линий (как было)
+    // пульсация линий (если хочешь убрать — скажи, уберу)
     linePulse += dt;
     svg.style.opacity = String(0.60 + 0.08 * Math.sin(linePulse * 0.9));
 
@@ -571,7 +543,7 @@
     positionPeopleStars();
     centerWorldOnConstellation();
 
-    initStarLayers();
+    drawStaticStarfield();
     requestDrawLines();
     drawLines();
   }
@@ -583,7 +555,6 @@
   setTimeout(() => { positionPeopleStars(); centerWorldOnConstellation(); requestDrawLines(); drawLines(); }, 900);
 
   window.addEventListener('resize', () => {
-    qualityDropped = false;
     initAll();
   });
 })();
