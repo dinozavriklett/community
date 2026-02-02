@@ -26,6 +26,7 @@ html, body{
 }
 
 #world{
+  will-change: transform;
   position: absolute;
   width: 3000px;
   height: 2200px;
@@ -284,5 +285,6 @@ html, body{
 .tooltip .tooltip-tint{
   background: rgba(7, 14, 26, 0.06) !important;
 }
+
 
 
