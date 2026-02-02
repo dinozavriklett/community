@@ -335,23 +335,25 @@
 
   // =========================================================
   // 7) ФОН + ПАДАЮЩИЕ
-  //    ⭐️ звёзды НЕ плывут (vx/vy = 0)
-  //    ⭐️ звёзд ещё больше
+  //    ⭐️ звёзды НЕ двигаются
+  //    ⭐️ мерцания НЕТ
+  //    ⭐️ звёзд много
   // =========================================================
   const QUALITY = {
     maxDpr: 1.35,
 
-    // FAR — много точек (самое дешёвое)
-    farMax: 42000,
-    farMin: 16000,
-    farDiv: 190,
+    // FAR: максимально плотный слой (точки)
+    farMax: 52000,
+    farMin: 21000,
+    farDiv: 155,
 
-    // NEAR — осторожно, но тоже чуть больше
-    nearMax: 5200,
-    nearMin: 1800,
-    nearDiv: 1850,
+    // NEAR: умеренно больше (дороже чем far)
+    nearMax: 7000,
+    nearMin: 2400,
+    nearDiv: 1500,
 
-    haloOnlyIfR: 1.30, // ореолы только у очень крупных
+    // ореолы только у самых крупных (ускоряет)
+    haloOnlyIfR: 1.38,
   };
 
   function setupFixedCanvas(canvas, ctx){
@@ -380,39 +382,31 @@
     farStars = [];
     nearStars = [];
 
-    // FAR — мелкие, яркие (кажется "очень много" и почти не грузит)
+    // FAR — много мелких точек, фиксированная яркость (без мерцания)
     for(let i=0;i<farCount;i++){
       farStars.push({
         x: Math.random()*w,
         y: Math.random()*h,
-        r: Math.random()*0.45 + 0.06,
-        a: Math.random()*0.32 + 0.06,
-        tw: (Math.random()*1.0 + 0.25),
-        ph: Math.random()*Math.PI*2,
-        vx: 0,
-        vy: 0
+        r: Math.random()*0.42 + 0.06,
+        a: Math.random()*0.32 + 0.06
       });
     }
 
-    // NEAR — чуть крупнее, тоже без движения
+    // NEAR — чуть крупнее, фиксированная яркость
     for(let i=0;i<nearCount;i++){
       nearStars.push({
         x: Math.random()*w,
         y: Math.random()*h,
-        r: Math.random()*1.10 + 0.25,
-        a: Math.random()*0.40 + 0.08,
-        tw: (Math.random()*1.35 + 0.55),
-        ph: Math.random()*Math.PI*2,
-        vx: 0,
-        vy: 0
+        r: Math.random()*1.05 + 0.23,
+        a: Math.random()*0.40 + 0.08
       });
     }
 
     shootings.length = 0;
-    nextShootAt = performance.now() + 1100 + Math.random()*2100;
+    nextShootAt = performance.now() + 950 + Math.random()*2000;
   }
 
-  // падающие звёзды (оставляем, это красиво)
+  // падающие звёзды оставляем
   const shootings = [];
   let nextShootAt = 0;
   const MAX_SHOOTINGS = 7;
@@ -451,7 +445,7 @@
       shootings.push(s);
     }
 
-    nextShootAt = now + 950 + Math.random()*2200;
+    nextShootAt = now + 900 + Math.random()*2100;
   }
 
   function drawShootings(dt, w, h){
@@ -510,9 +504,8 @@
     if (!qualityDropped && fps < 45){
       qualityDropped = true;
 
-      // режем near сильно, far умеренно (чтобы всё равно было много звёзд)
-      nearStars = nearStars.slice(0, Math.max(1200, Math.floor(nearStars.length * 0.60)));
-      farStars  = farStars.slice(0, Math.max(11000, Math.floor(farStars.length * 0.75)));
+      nearStars = nearStars.slice(0, Math.max(1600, Math.floor(nearStars.length * 0.60)));
+      farStars  = farStars.slice(0, Math.max(14000, Math.floor(farStars.length * 0.72)));
 
       nextShootAt = performance.now() + 1400 + Math.random()*2600;
     }
@@ -530,34 +523,28 @@
     const w = window.innerWidth;
     const h = window.innerHeight;
 
-    // FAR: без движения (vx/vy=0), только мерцание
+    // FAR (без мерцания)
     farCtx.clearRect(0,0,w,h);
     for (const s of farStars){
-      const twinkle = 0.60 + 0.40 * Math.sin(now/1000 * s.tw + s.ph);
-      const a = s.a * twinkle;
-
       farCtx.beginPath();
       farCtx.arc(s.x, s.y, s.r, 0, Math.PI*2);
-      farCtx.fillStyle = `rgba(255,255,255,${a})`;
+      farCtx.fillStyle = `rgba(255,255,255,${s.a})`;
       farCtx.fill();
     }
 
-    // NEAR: без движения, только мерцание + редкие ореолы
+    // NEAR (без мерцания + редкие ореолы)
     nearCtx.clearRect(0,0,w,h);
     for (const s of nearStars){
-      const twinkle = 0.56 + 0.44 * Math.sin(now/1000 * s.tw + s.ph);
-      const a = s.a * twinkle;
-
       if (s.r > QUALITY.haloOnlyIfR){
         nearCtx.beginPath();
         nearCtx.arc(s.x, s.y, s.r*3.0, 0, Math.PI*2);
-        nearCtx.fillStyle = `rgba(255,255,255,${a*0.065})`;
+        nearCtx.fillStyle = `rgba(255,255,255,${s.a*0.065})`;
         nearCtx.fill();
       }
 
       nearCtx.beginPath();
       nearCtx.arc(s.x, s.y, s.r, 0, Math.PI*2);
-      nearCtx.fillStyle = `rgba(255,255,255,${a})`;
+      nearCtx.fillStyle = `rgba(255,255,255,${s.a})`;
       nearCtx.fill();
     }
 
