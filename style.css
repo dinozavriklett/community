@@ -98,7 +98,10 @@ html, body{
 .star-wrapper{
   position: absolute;
   transform: translate(-50%, -50%);
+  width: 18px;
+  height: 18px;
 }
+
 
 /* =========================
    PERSON STAR — 4-LUCH + SVET
@@ -107,13 +110,14 @@ html, body{
   position: relative;
   width: 18px;
   height: 18px;
+  mix-blend-mode: screen;
+  opacity: 1;
 
-  filter:
-    drop-shadow(0 0 6px rgba(255,255,255,1))
-    drop-shadow(0 0 14px rgba(200,230,255,1))
-    drop-shadow(0 0 30px rgba(185,220,255,0.95))
-    drop-shadow(0 0 60px rgba(165,210,255,0.75))
-    drop-shadow(0 0 110px rgba(145,195,255,0.45));
+    filter:
+    drop-shadow(0 0 1px rgba(0,0,0,0.55))
+    drop-shadow(0 0 5px rgba(255,255,255,0.95))
+    drop-shadow(0 0 14px rgba(200,230,255,0.85))
+    drop-shadow(0 0 42px rgba(165,210,255,0.35));
 }
 
 /* вертикальный луч */
@@ -154,15 +158,21 @@ html, body{
    STAR NAME
 ========================= */
 .star-name{
-  margin-top: 10px;
+  position: absolute;
+  top: calc(100% + 10px); /* расстояние под звездой */
+  left: 50%;
+  transform: translateX(-50%);
+
+  margin-top: 0;
   font-size: 14px;
   text-align: center;
+  white-space: nowrap;
+
   color: rgba(255,255,255,1);
   text-shadow:
     0 0 14px rgba(210,235,255,1),
     0 0 36px rgba(185,220,255,0.85),
     0 0 80px rgba(160,205,255,0.55);
-  white-space: nowrap;
 }
 
 /* =========================
@@ -214,12 +224,11 @@ html, body{
 .tooltip .tooltip-bg{ display: none !important; }
 
 /* лёгкий тинт, чтобы текст читался, но фон был виден */
-.tooltip .tooltip-tint{
+.tooltip-tint{
   position: absolute;
   inset: 0;
-  z-index: 0;
+  background: rgba(10, 18, 32, 0.18); /* очень лёгкий */
   pointer-events: none;
-  background: rgba(7, 14, 26, 0.10);
 }
 
 /* текст */
@@ -252,12 +261,15 @@ html, body{
 }
 
 #constellation line{
-  stroke: rgba(200,230,255,0.95);
+  stroke: rgba(135,175,255,0.95); /* как заголовок */
   stroke-width: 1.7;
+
   filter:
-    drop-shadow(0 0 14px rgba(200,230,255,0.95))
-    drop-shadow(0 0 40px rgba(170,215,255,0.65));
+    drop-shadow(0 0 12px rgba(135,175,255,0.95))
+    drop-shadow(0 0 36px rgba(135,175,255,0.55));
 }
+
+
 
 /* ✅ чтобы backdrop-filter блюрил линии/звёзды:
    линии должны быть ниже карточки */
@@ -286,5 +298,136 @@ html, body{
   background: rgba(7, 14, 26, 0.06) !important;
 }
 
+/* =========================
+   🔒 STABLE GLASS FIX
+   гарантирует blur всего под tooltip
+========================= */
 
+/* убираем влияние transform родителя */
+.star-wrapper{
+  transform: translate(-50%, -50%);
+  isolation: auto; /* ✅ БЫЛО isolate — мешало blur */
+}
 
+/* tooltip всегда в отдельном стек-контексте */
+.tooltip{
+  position: absolute;
+  z-index: 1000;
+  isolation: auto; /* ✅ БЫЛО isolate — мешало blur */
+
+  /* фон ОБЯЗАТЕЛЬНО с альфой */
+  background-color: rgba(7, 14, 26, 0.12);
+
+  /* реальный blur */
+  -webkit-backdrop-filter: blur(18px) saturate(125%);
+  backdrop-filter: blur(18px) saturate(125%);
+}
+
+/* линии и звёзды гарантированно под tooltip */
+#starfieldFar,
+#starfieldNear,
+#shooting,
+#constellation{
+  z-index: 1;
+}
+
+/* звёзды и имена ниже карточек */
+.star-wrapper{
+  z-index: 3;
+}
+
+/* имена всегда поверх своей звезды,
+   но ниже tooltip */
+.star-name{
+  position: relative;
+  z-index: 2;
+
+  color: rgba(255,255,255,0.95);
+  text-shadow:
+    0 0 10px rgba(210,235,255,0.95),
+    0 0 24px rgba(185,220,255,0.75);
+}
+
+/* ===== DRAG PAN CURSOR ===== */
+#space {
+  cursor: grab;
+}
+
+#space.is-grabbing {
+  cursor: grabbing;
+}
+.star-name{
+  width: max-content;   /* чтобы центр считался по реальной ширине текста */
+  text-align: center;
+}
+
+/* === FIX: имя всегда строго под центром звезды === */
+
+/* звезда всегда в центре якоря */
+.person-star{
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+
+/* === TOOLTIP: РЕАЛЬНЫЙ BLUR ФОНА === */
+.tooltip{
+  position: absolute;
+  left: 50%;
+  bottom: -78px;
+  transform: translateX(-50%) translateY(6px);
+  opacity: 0;
+
+  padding: 14px 22px;
+  border-radius: 18px;
+
+  /* ВАЖНО: реальная прозрачность */
+  background: rgba(10, 18, 32, 0.35);
+
+  /* ВОТ ОН — блюр ФОНА */
+  -webkit-backdrop-filter: blur(14px) saturate(120%);
+  backdrop-filter: blur(14px) saturate(120%);
+
+  border: 1px solid rgba(150,200,255,0.25);
+  box-shadow:
+    0 10px 40px rgba(0,0,0,0.45);
+
+  pointer-events: none;
+  transition: opacity .18s ease, transform .18s ease;
+  z-index: 1000;
+}
+
+.star-wrapper:hover .tooltip{
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* слой для tooltip поверх всего, чтобы backdrop-filter видел фон */
+#tooltip-layer{
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 10000;
+}
+
+/* tooltip, когда мы переносим его в #tooltip-layer */
+#tooltip-layer .tooltip{
+  position: fixed;
+  left: 0;
+  top: 0;
+  bottom: auto;
+
+  opacity: 0;
+  transform: translate(-50%, 6px);
+
+  background: rgba(10, 18, 32, 0.28);
+  -webkit-backdrop-filter: blur(16px) saturate(125%);
+  backdrop-filter: blur(16px) saturate(125%);
+}
+
+/* показать */
+#tooltip-layer .tooltip.is-show{
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
