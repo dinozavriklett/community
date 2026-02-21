@@ -160,7 +160,12 @@ html, body{
     transparent
   );
 }
-
+@media (max-width: 768px){
+  .person-star{
+    filter:
+      drop-shadow(0 0 6px rgba(200,230,255,0.8));
+  }
+}
 /* =========================
    STAR NAME
 ========================= */
@@ -222,6 +227,12 @@ html, body{
   transition: opacity .18s ease, transform .18s ease;
 }
 
+@media (max-width: 768px){
+  .tooltip{
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+  }
+}
 .star-wrapper:hover .tooltip{
   opacity: 1;
   transform: translateX(-50%) translateY(0);

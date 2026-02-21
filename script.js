@@ -511,12 +511,12 @@ const centers = peopleStars.map(star => {
     const isMobile = window.innerWidth < 768;
 
 const farCount  = isMobile
-  ? Math.max(2500, Math.floor(area / 700))
+  ? Math.floor(area / 1800)   // было 7000+ → теперь в 4-6 раз меньше
   : Math.max(7000, Math.min(26000, Math.floor(area / 360)));
 
 const nearCount = isMobile
-  ? Math.max(800, Math.floor(area / 3500))
-  : Math.max(1700, Math.min(6200,  Math.floor(area / 1800)));
+  ? Math.floor(area / 5000)   // почти убираем второй слой
+  : Math.max(1700, Math.min(6200, Math.floor(area / 1800)));
 
     farStars = [];
     nearStars = [];
@@ -701,8 +701,10 @@ const nearCount = isMobile
       nearCtx.fill();
     }
 
-    maybeSpawnShooting(now, w, h);
-    drawShootings(dt, w, h);
+   if (window.innerWidth >= 768) {
+  maybeSpawnShooting(now, w, h);
+  drawShootings(dt, w, h);
+}
 
     linePulse += dt;
     svg.style.opacity = String(0.60 + 0.08 * Math.sin(linePulse * 0.9));
